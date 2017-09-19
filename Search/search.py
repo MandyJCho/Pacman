@@ -17,8 +17,6 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
-from util import *
-
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -72,46 +70,44 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-
-    """
+def search(problem, fringe):
+    # initialize variables
     start = problem.getStartState()
-    nodeList = dict([(start, (start, None, 1))])
-    path = []
-
-    fringe = Stack()
+    discovered = dict({start: None})
+    node = None
     fringe.push(start)
 
-    node = fringe.pop()
-    nodeList.update(problem.getSuccessors(node))
-
-
-    """
+    # while fringe still has nodes
     while not fringe.isEmpty():
-    node = fringe.pop()
-    print problem.getSuccessors(node[0])
-    print "personal test lines"
-    print node
-    print nodeList
-    """
+        node = fringe.pop()
 
-    # util.raiseNotDefined()
+        # return if goal
+        if problem.isGoalState(node):
+            break
+
+        # else add to discovered and put onto stack
+        successors = problem.getSuccessors(node)
+        for s in successors:
+            if not discovered.has_key(s[0]):
+                discovered.update({s[0]: s + (node,)})  # create new tuple with reference to prev node
+                fringe.push(s[0])
+
+    # get path
+    path = []
+    while discovered[node] is not None:
+        details = discovered.get(node)
+        path.insert(0, details[1]) # insert path to front since it's backwards
+        node = details[3]
+
+    return path
+
+def depthFirstSearch(problem):
+    from util import Stack
+    return search(problem, Stack())
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import Queue
+    return search(problem, Queue())
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
