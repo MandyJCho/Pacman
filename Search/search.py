@@ -114,7 +114,6 @@ def search(problem, fringe, heuristic):
     while node[3] is not None:
         path.insert(0, node[1])
         node = traversed[node[3]]
-        
 
     return path
 
