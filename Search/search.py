@@ -70,11 +70,8 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem):
-    from util import Stack
-    # initialize variables
-    fringe = Stack()
-    discovered = dict()
+def search(problem, fringe):
+    traversed = dict()
     node = (problem.getStartState(), None, 0, None)
     fringe.push(node)
 
@@ -82,93 +79,78 @@ def depthFirstSearch(problem):
     while not fringe.isEmpty():
         node = fringe.pop()
 
-        # map discovered by predecesor
-        discovered.update({node[0]: node})
-
-        # return if goal
-        if problem.isGoalState(node[0]):
+        # already visited
+        if traversed.get(node[0]) is not None:
+            continue
+        # or goal
+        elif problem.isGoalState(node[0]):
             break
 
+        # otherwise add the node to traversed
+        traversed.update({node[0]: node})
+
         # else add to discovered and put onto stack
-        successors = problem.getSuccessors(node[0])
-        for s in successors:
-            if not discovered.has_key(s[0]):
+        for s in problem.getSuccessors(node[0]):
+            if not traversed.has_key(s[0]):
                 fringe.push(s + (node[0],))
 
     # get path
     path = []
 
+    # backtrack until root
     while node[3] is not None:
         path.insert(0, node[1])
-        node = discovered[node[3]]
+        node = traversed[node[3]]
 
     return path
+
+def depthFirstSearch(problem):
+    from util import Stack
+    return search(problem, Stack())
 
 def breadthFirstSearch(problem):
     from util import Queue
-    # initialize variables
-    fringe = Queue()
-    node = problem.getStartState()
-    discovered = dict({node: None})
-    fringe.push(node)
-
-    # while fringe still has nodes
-    while not fringe.isEmpty():
-        node = fringe.pop()
-
-        # return if goal
-        if problem.isGoalState(node):
-            break
-
-        # else add to discovered and put onto stack
-        successors = problem.getSuccessors(node)
-        for s in successors:
-            if not discovered.has_key(s[0]):
-                discovered.update({s[0]: s + (node,)})  # create new tuple with reference to prev node
-                fringe.push(s[0])
-
-    # get path
-    path = []
-    while discovered[node] is not None:
-        details = discovered.get(node)
-        path.insert(0, details[1])  # insert path to front since it's backwards
-        node = details[3]
-
-    return path
+    return search(problem, Queue())
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
     from util import PriorityQueue
 
     # initialize variables
     fringe = PriorityQueue()
-    start = problem.getStartState()
-
-    fringe.push(start, 0)
-    traveled = dict()
-    traveled.update({(start, None): (None, None)})
+    node = (problem.getStartState(), None, 0, None)
+    fringe.push(node, node[2])
+    traversed = dict()
 
     # while fringe still has nodes
     while not fringe.isEmpty():
         node = fringe.pop()
+        print node
 
+        # already visited
+        if traversed.get(node[0]) is not None:
+            continue
         # return if goal
-        if problem.isGoalState(node):
+        elif problem.isGoalState(node):
             break
 
-        # else add to discovered and put onto stack
-        successors = problem.getSuccessors(node)
-        for s in successors:
-            directedNode = (s[0:1] + node)
-           # print directedNode
-            fringe.push([s], s[1])
-            traveled.append({(directedNode): node})
+        traversed.update({node[0]: node})
 
-    # need to change discovered to hold the whole tuple as the key
+        # else add to discovered and put onto stack
+        for successor, action, stepCost in problem.getSuccessors(node[0]):
+            # if not traversed
+            if not traversed.has_key(successor):
+                print "add ", (successor, action, stepCost + node[2], node[0])
+                fringe.push((successor, action, stepCost + node[2], node[0]), stepCost + node[2])
+
 
     # get path
     path = []
-    print node
+
+    # backtrack until root
+    while node[3] is not None:
+        path.insert(0, node[1])
+        node = traversed[node[3]]
+
     return path
 
 def nullHeuristic(state, problem=None):
