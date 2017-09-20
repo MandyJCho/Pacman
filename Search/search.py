@@ -70,12 +70,47 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def search(problem, fringe):
+def depthFirstSearch(problem):
+    from util import Stack
     # initialize variables
-    start = problem.getStartState()
-    discovered = dict({start: None})
-    node = None
-    fringe.push(start)
+    fringe = Stack()
+    discovered = dict()
+    node = (problem.getStartState(), None, 0, None)
+    fringe.push(node)
+
+    # while fringe still has nodes
+    while not fringe.isEmpty():
+        node = fringe.pop()
+
+        # map discovered by predecesor
+        discovered.update({node[0]: node})
+
+        # return if goal
+        if problem.isGoalState(node[0]):
+            break
+
+        # else add to discovered and put onto stack
+        successors = problem.getSuccessors(node[0])
+        for s in successors:
+            if not discovered.has_key(s[0]):
+                fringe.push(s + (node[0],))
+
+    # get path
+    path = []
+
+    while node[3] is not None:
+        path.insert(0, node[1])
+        node = discovered[node[3]]
+
+    return path
+
+def breadthFirstSearch(problem):
+    from util import Queue
+    # initialize variables
+    fringe = Queue()
+    node = problem.getStartState()
+    discovered = dict({node: None})
+    fringe.push(node)
 
     # while fringe still has nodes
     while not fringe.isEmpty():
@@ -96,24 +131,45 @@ def search(problem, fringe):
     path = []
     while discovered[node] is not None:
         details = discovered.get(node)
-        path.insert(0, details[1]) # insert path to front since it's backwards
+        path.insert(0, details[1])  # insert path to front since it's backwards
         node = details[3]
 
     return path
 
-def depthFirstSearch(problem):
-    from util import Stack
-    return search(problem, Stack())
-
-def breadthFirstSearch(problem):
-    from util import Queue
-    return search(problem, Queue())
-
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    return 0
-    util.raiseNotDefined()
+    from util import PriorityQueue
+
+    # initialize variables
+    fringe = PriorityQueue()
+    start = problem.getStartState()
+
+    fringe.push(start, 0)
+    traveled = dict()
+    traveled.update({(start, None): (None, None)})
+
+    # while fringe still has nodes
+    while not fringe.isEmpty():
+        node = fringe.pop()
+
+        # return if goal
+        if problem.isGoalState(node):
+            break
+
+        # else add to discovered and put onto stack
+        successors = problem.getSuccessors(node)
+        for s in successors:
+            directedNode = (s[0:1] + node)
+           # print directedNode
+            fringe.push([s], s[1])
+            traveled.append({(directedNode): node})
+
+    # need to change discovered to hold the whole tuple as the key
+
+    # get path
+    path = []
+    print node
+    return path
 
 def nullHeuristic(state, problem=None):
     """
