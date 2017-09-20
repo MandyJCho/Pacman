@@ -77,16 +77,18 @@ def search(problem, fringe, heuristic):
     traversed = dict()
 
     # add heuristic to cost if PQ if provided for PQ
-    fringe.push(node, node[2] + heuristic(node[0])) \
-        if heuristic is not None \
-        else fringe.push(node)
+    if heuristic:
+        hCost = node[2] + heuristic(node[0], problem)
+        fringe.push(node, hCost)
+    else:
+        fringe.push(node)
 
     while not fringe.isEmpty():
         node = fringe.pop()
         current, action, cost, previous = node
 
         # no duplicate path expansions
-        if traversed.get(current) is not None:
+        if traversed.has_key(current):
             continue
         # get path
         elif problem.isGoalState(current):
@@ -96,13 +98,17 @@ def search(problem, fringe, heuristic):
         traversed.update({current: node})
 
         for s in problem.getSuccessors(current):
+            # if new add to fringe
+            successor = s + (current,)
+
             if not traversed.has_key(s[0]):
-                successor = s + (current,)
-                if heuristic is None:
-                    print s
-                    fringe.push(successor)
+                if heuristic:
+
+                    sCurrent, sAction, sCost, sPrevious = successor
+                    sCost += cost
+                    fringe.push((sCurrent, sAction, sCost, sPrevious), sCost + heuristic(sCurrent, problem))
                 else:
-                    fringe.push(successor, successor[2] + cost)
+                    fringe.push(successor)
 
     path = []
     while node[3] is not None:
@@ -118,19 +124,13 @@ def breadthFirstSearch(problem):
     return search(problem, Queue(), None)
 
 def uniformCostSearch(problem):
-    return search(problem, PriorityQueue, nullHeuristic)
+    return search(problem, PriorityQueue(), nullHeuristic)
 
 def nullHeuristic(state, problem=None):
-    """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
-    """
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return search(problem, PriorityQueue(), heuristic)
 
 
 # Abbreviations
