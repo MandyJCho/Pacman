@@ -70,34 +70,41 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def search(problem, fringe):
-    traversed = dict()
-    node = (problem.getStartState(), None, 0, None)
-    fringe.push(node)
+from util import *
 
-    # while fringe still has nodes
+def search(problem, fringe, heuristic):
+    node = (problem.getStartState(), None, 0, None)
+    traversed = dict()
+
+    # add heuristic to cost if PQ if provided for PQ
+    fringe.push(node, node[2] + heuristic(node[0])) \
+        if heuristic is not None \
+        else fringe.push(node)
+
     while not fringe.isEmpty():
         node = fringe.pop()
+        current, action, cost, previous = node
 
-        # already visited
-        if traversed.get(node[0]) is not None:
+        # no duplicate path expansions
+        if traversed.get(current) is not None:
             continue
-        # or goal
-        elif problem.isGoalState(node[0]):
+        # get path
+        elif problem.isGoalState(current):
             break
 
-        # otherwise add the node to traversed
-        traversed.update({node[0]: node})
+        # add to traversed
+        traversed.update({current: node})
 
-        # else add to discovered and put onto stack
-        for s in problem.getSuccessors(node[0]):
+        for s in problem.getSuccessors(current):
             if not traversed.has_key(s[0]):
-                fringe.push(s + (node[0],))
+                successor = s + (current,)
+                if heuristic is None:
+                    print s
+                    fringe.push(successor)
+                else:
+                    fringe.push(successor, successor[2] + cost)
 
-    # get path
     path = []
-
-    # backtrack until root
     while node[3] is not None:
         path.insert(0, node[1])
         node = traversed[node[3]]
@@ -105,53 +112,13 @@ def search(problem, fringe):
     return path
 
 def depthFirstSearch(problem):
-    from util import Stack
-    return search(problem, Stack())
+    return search(problem, Stack(), None)
 
 def breadthFirstSearch(problem):
-    from util import Queue
-    return search(problem, Queue())
+    return search(problem, Queue(), None)
 
 def uniformCostSearch(problem):
-    from util import PriorityQueue
-
-    # initialize variables
-    fringe = PriorityQueue()
-    node = (problem.getStartState(), None, 0, None)
-    fringe.push(node, node[2])
-    traversed = dict()
-
-    # while fringe still has nodes
-    while not fringe.isEmpty():
-        node = fringe.pop()
-        print node
-
-        # already visited
-        if traversed.get(node[0]) is not None:
-            continue
-        # return if goal
-        elif problem.isGoalState(node):
-            break
-
-        traversed.update({node[0]: node})
-
-        # else add to discovered and put onto stack
-        for successor, action, stepCost in problem.getSuccessors(node[0]):
-            # if not traversed
-            if not traversed.has_key(successor):
-                print "add ", (successor, action, stepCost + node[2], node[0])
-                fringe.push((successor, action, stepCost + node[2], node[0]), stepCost + node[2])
-
-
-    # get path
-    path = []
-
-    # backtrack until root
-    while node[3] is not None:
-        path.insert(0, node[1])
-        node = traversed[node[3]]
-
-    return path
+    return search(problem, PriorityQueue, nullHeuristic)
 
 def nullHeuristic(state, problem=None):
     """
