@@ -72,47 +72,46 @@ def tinyMazeSearch(problem):
 
 from util import *
 
-def standardize(state):
-    if not isinstance((state[1]), tuple):
-        return (state,) + ((),)
-    return state
-
 def search(problem, fringe, heuristic):
-    start = standardize(problem.getStartState())
+    start = problem.getStartState()
+    if len(start) < 3:
+        start = (start,) + ((),)
 
     node = (start, None, 0, None)
+
     traversed = dict()
 
     # add heuristic to cost if PQ if provided for PQ
     if heuristic:
-        hCost = node[2] + heuristic(node[0][0], problem)
+        hCost = node[2] + heuristic(problem.getStartState(), problem)
         fringe.push(node, hCost)
     else:
         fringe.push(node)
+
 
     while not fringe.isEmpty():
         node = fringe.pop()
         current, action, cost, previous = node
 
         # no duplicate path expansions
-        if traversed.has_key(current[0]):
+        if traversed.has_key(current):
             continue
         # get path
-        elif problem.isGoalState(current[0]):
+        elif problem.isGoalState(current):
             break
 
         # add to traversed
         traversed.update({current: node})
 
-        for s in problem.getSuccessors(current[0]):
+        for s in problem.getSuccessors(current):
             # if new add to fringe
-            successor = (standardize(s[0]),) + s[1:] + (current,)
-            sCurrent, sAction, sCost, sPrevious = successor
+            successor = s + (current,)
 
             if not traversed.has_key(s[0]):
                 if heuristic:
+                    sCurrent, sAction, sCost, sPrevious = successor
                     sCost += cost
-                    fringe.push(((sCurrent,), sAction, sCost, (sPrevious,)), sCost + heuristic(sCurrent[0], problem))
+                    fringe.push((sCurrent, sAction, sCost, sPrevious), sCost + heuristic(sCurrent, problem))
                 else:
                     fringe.push(successor)
 
