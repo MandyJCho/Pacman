@@ -72,46 +72,49 @@ def tinyMazeSearch(problem):
 
 from util import *
 
+def standardize(state):
+    if len(state) < 3:
+        return (state,) + ((),)
+
 def search(problem, fringe, heuristic):
-    start = problem.getStartState()
-    if len(start) < 3:
-        start = (start,) + ((),)
-
-    node = (start, None, 0, None)
-
+    #                       0                1      2        3
+    # init node: [(coord, heuristic meta), action, cost, previous]
+    node = (standardize(problem.getStartState()), None, 0, None)
     traversed = dict()
 
-    # add heuristic to cost if PQ if provided for PQ
+    # add node to fringe
     if heuristic:
-        hCost = node[2] + heuristic(problem.getStartState(), problem)
+        hCost = node[2] + heuristic(problem.getStartState(), problem) # add heuristic to cost
         fringe.push(node, hCost)
     else:
         fringe.push(node)
 
-
     while not fringe.isEmpty():
         node = fringe.pop()
-        current, action, cost, previous = node
+        (current, meta), action, cost, previous = node
+        # key for traversed nodes
+        metaNode = (current, meta)
 
         # no duplicate path expansions
-        if traversed.has_key(current):
+        if traversed.has_key(metaNode):
             continue
-        # get path
+        # end if complete
         elif problem.isGoalState(current):
             break
 
-        # add to traversed
-        traversed.update({current: node})
+        # add to traversed if node meets definition of new
+        traversed.update({metaNode: node})
 
         for s in problem.getSuccessors(current):
-            # if new add to fringe
-            successor = s + (current,)
+            # if successor is new, add it to the fringe
+            sCurrent, sAction, sCost = s
+            sCurrent = standardize(sCurrent)
 
+            successor = sCurrent, sAction, sCost, metaNode
             if not traversed.has_key(s[0]):
                 if heuristic:
-                    sCurrent, sAction, sCost, sPrevious = successor
                     sCost += cost
-                    fringe.push((sCurrent, sAction, sCost, sPrevious), sCost + heuristic(sCurrent, problem))
+                    fringe.push((sCurrent, sAction, sCost, metaNode), sCost + heuristic(sCurrent[0], problem))
                 else:
                     fringe.push(successor)
 
