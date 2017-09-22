@@ -288,13 +288,12 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
 
         self.undiscoveredCorners = self.corners
-        #### IDEA ----- To treat nodes i've alrady traveresed, combine the tuple with undiscovered
 
     def getStartState(self):
         return ((self.startingPosition), (self.undiscoveredCorners))
 
     def isGoalState(self, state):
-        return len(state[1]) is 0
+        return False if len(state[1]) else True
 
     def getSuccessors(self, state):
         """
@@ -314,14 +313,15 @@ class CornersProblem(search.SearchProblem):
 
             # if not wall, then send node
             if not self.walls[nextx][nexty]:
-                if state in state[1]:
+                if state[0] in state[1]:
                     corners = list(state[1])
                     corners.pop(corners.index(state[0]))
-                    state[1] = tuple(corners)
-                successors.append((((nextx, nexty,), state[1]), action, 1))
+                    successors.append((((nextx, nexty,), tuple(corners)), action, 1))
+                else:
+                    successors.append((((nextx, nexty,), state[1]), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
-
+        
         return successors
 
     def getCostOfActions(self, actions):
@@ -337,41 +337,14 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-def findClosestCorner(self, state):
-    x, y = state
-    min = 999999
-    closest = None
-
-    for corner in self.undiscoveredCorners:
-        if min is util.manhattanDistance(state, corner):
-            closest = corner
-
-    return min, closest
-
-def cornersHeuristic(self, state, problem):
-    """
-    A heuristic for the CornersProblem that you defined.
-
-      state:   The current search state
-               (a data structure you chose in your search problem)
-
-      problem: The CornersProblem instance for this layout.
-
-    This function should always return a number that is a lower bound on the
-    shortest path from the state to a goal of the problem; i.e.  it should be
-    admissible (as well as consistent).
-    """
+def cornersHeuristic(state, problem):
     # calculate distance between goal corner
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    # goal has an admissiable heurisitic
-    if problem.isGoalState(state):
-        return 0
-
     "*** YOUR CODE HERE ***"
-    min, closest = findClosestCorner(self, state)
-    return min
+    return min([util.manhattanDistance(state[0], corner) for corner in state[1]]) \
+        if len(state[1]) else 0
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

@@ -78,20 +78,6 @@ def search(problem, fringe, heuristic):
     node = (problem.getStartState(), None, 0, None)
     traversed = dict()
 
-    """
-     FIGURE OUT: We need to preserve state of traveled nodes, so a way to do that is to 
-     we need to take the modified state of the the current successor in comparison
-     to the parent's traveled nodes in the list
-     
-     ** where to implement: we would need to implement in the search maze, so by doing this
-     we would implement after getting the next the successor
-     
-     would i need to build off the parent's visited? i would need to trace this to figure out
-     when to replace the state with the smaller list of traveled corners
-    """
-
-
-
     # add node to fringe
     if heuristic:
         hCost = node[2] + heuristic(problem.getStartState(), problem) # add heuristic to cost
@@ -101,7 +87,6 @@ def search(problem, fringe, heuristic):
 
     while not fringe.isEmpty():
         node = fringe.pop()
-        print node
 
         current, action, cost, previous = node
 
@@ -126,7 +111,6 @@ def search(problem, fringe, heuristic):
                     fringe.push((sCurrent,) + (sAction, sCost, current), sCost + heuristic(sCurrent, problem))
                 else:
                     fringe.push((sCurrent,) + (sAction, sCost, current))
-                    print (sCurrent,) + (sAction, sCost, current)
 
 
     path = []
