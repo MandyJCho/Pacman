@@ -287,12 +287,11 @@ class CornersProblem(search.SearchProblem):
                 print 'Warning: no food in corner ' + str(corner)
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
 
-        self.undiscoveredCorners = self.corners
-
     def getStartState(self):
-        return ((self.startingPosition), (self.undiscoveredCorners))
+        return ((self.startingPosition), (self.corners))
 
     def isGoalState(self, state):
+        # true only if all corners have been visited
         return False if len(state[1]) else True
 
     def getSuccessors(self, state):
@@ -306,6 +305,7 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
         successors = []
+
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             x, y = state[0]
             dx, dy = Actions.directionToVector(action)
@@ -313,15 +313,17 @@ class CornersProblem(search.SearchProblem):
 
             # if not wall, then send node
             if not self.walls[nextx][nexty]:
-                if state[0] in state[1]:
+                # remove state from list if it's a corner
+                if (nextx, nexty) in state[1]:
                     corners = list(state[1])
-                    corners.pop(corners.index(state[0]))
+                    corners.pop(corners.index((nextx, nexty)))
                     successors.append((((nextx, nexty,), tuple(corners)), action, 1))
+                # otherwise pass the corners
                 else:
                     successors.append((((nextx, nexty,), state[1]), action, 1))
 
+
         self._expanded += 1 # DO NOT CHANGE
-        
         return successors
 
     def getCostOfActions(self, actions):
@@ -338,12 +340,7 @@ class CornersProblem(search.SearchProblem):
         return len(actions)
 
 def cornersHeuristic(state, problem):
-    # calculate distance between goal corner
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
-    "*** YOUR CODE HERE ***"
-    return min([util.manhattanDistance(state[0], corner) for corner in state[1]]) \
+    return max([util.manhattanDistance(state[0], corner) for corner in state[1]]) \
         if len(state[1]) else 0
 
 class AStarCornersAgent(SearchAgent):
