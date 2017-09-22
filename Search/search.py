@@ -72,15 +72,25 @@ def tinyMazeSearch(problem):
 
 from util import *
 
-def standardize(state):
-    if len(state) < 3:
-        return (state,) + ((),)
-
 def search(problem, fringe, heuristic):
     #                       0                1      2        3
     # init node: [(coord, heuristic meta), action, cost, previous]
-    node = (standardize(problem.getStartState()), None, 0, None)
+    node = (problem.getStartState(), None, 0, None)
     traversed = dict()
+
+    """
+     FIGURE OUT: We need to preserve state of traveled nodes, so a way to do that is to 
+     we need to take the modified state of the the current successor in comparison
+     to the parent's traveled nodes in the list
+     
+     ** where to implement: we would need to implement in the search maze, so by doing this
+     we would implement after getting the next the successor
+     
+     would i need to build off the parent's visited? i would need to trace this to figure out
+     when to replace the state with the smaller list of traveled corners
+    """
+
+
 
     # add node to fringe
     if heuristic:
@@ -91,32 +101,33 @@ def search(problem, fringe, heuristic):
 
     while not fringe.isEmpty():
         node = fringe.pop()
-        (current, meta), action, cost, previous = node
-        # key for traversed nodes
-        metaNode = (current, meta)
+        print node
+
+        current, action, cost, previous = node
 
         # no duplicate path expansions
-        if traversed.has_key(metaNode):
+        if traversed.has_key(current):
             continue
         # end if complete
         elif problem.isGoalState(current):
             break
 
         # add to traversed if node meets definition of new
-        traversed.update({metaNode: node})
+        traversed.update({current: node})
 
         for s in problem.getSuccessors(current):
             # if successor is new, add it to the fringe
             sCurrent, sAction, sCost = s
-            sCurrent = standardize(sCurrent)
 
-            successor = sCurrent, sAction, sCost, metaNode
             if not traversed.has_key(s[0]):
                 if heuristic:
                     sCost += cost
-                    fringe.push((sCurrent, sAction, sCost, metaNode), sCost + heuristic(sCurrent[0], problem))
+                    # test to see if s is a tuple,
+                    fringe.push((sCurrent,) + (sAction, sCost, current), sCost + heuristic(sCurrent, problem))
                 else:
-                    fringe.push(successor)
+                    fringe.push((sCurrent,) + (sAction, sCost, current))
+                    print (sCurrent,) + (sAction, sCost, current)
+
 
     path = []
     while node[3] is not None:

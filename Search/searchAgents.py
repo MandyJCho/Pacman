@@ -291,16 +291,10 @@ class CornersProblem(search.SearchProblem):
         #### IDEA ----- To treat nodes i've alrady traveresed, combine the tuple with undiscovered
 
     def getStartState(self):
-        return (self.startingPosition,) + (self.undiscoveredCorners,)
+        return ((self.startingPosition), (self.undiscoveredCorners))
 
     def isGoalState(self, state):
-        # see if it's an undiscovered corner
-        if state in self.undiscoveredCorners:
-            self.undiscoveredCorners = (corner for corner in self.undiscoveredCorners \
-                                        if corner is not state)
-
-        # return false if there are still nodes to discover
-        return len(self.undiscoveredCorners) == 0
+        return len(state[1]) is 0
 
     def getSuccessors(self, state):
         """
@@ -314,15 +308,20 @@ class CornersProblem(search.SearchProblem):
         """
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            x, y = state
+            x, y = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
 
             # if not wall, then send node
             if not self.walls[nextx][nexty]:
-                successors.append(((nextx, nexty), action, 1))
+                if state in state[1]:
+                    corners = list(state[1])
+                    corners.pop(corners.index(state[0]))
+                    state[1] = tuple(corners)
+                successors.append((((nextx, nexty,), state[1]), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
+
         return successors
 
     def getCostOfActions(self, actions):
